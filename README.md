@@ -1,5 +1,5 @@
 # st-link-dumper
-This is based on the original @lujji st-link-dumper https://github.com/lujji/st-link-dumper modified a little bit to dump the continuously the flash and adding flashing LED for start and stop dump. I've changed the code to be compatible with latest libopencm3 library and adding definitions for 2 boards: STM32F103CxT6 Blue Pill and Nucleo boards.
+This is based on the original @lujji st-link-dumper https://github.com/lujji/st-link-dumper modified a little bit to dump continuously the flash and adding flashing LED for start and stop dumps. I've changed the code to be compatible with latest libopencm3 library and adding definitions for 2 boards: STM32F103CxT6 Blue Pill and Nucleo boards.
 
 Dumper firmware for stm32f103x. It will read flash contents from 0x08000000 to 0x08004000 and dump it over UART2 (TX=PA2). Default baud is 9600.
 
