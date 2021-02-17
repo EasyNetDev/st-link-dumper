@@ -32,6 +32,9 @@
 #error "Please select a board!"
 #endif
 
+/* Set the LED flash interval when trasmiting the data */
+#define LED_TX_FLASH_INT 5
+
 static void delay(int x) {
     for (int i = 0; i < x; i++)
         for (int j = 0; j < 4000; j++)
@@ -61,12 +64,16 @@ static void usart_setup(void) {
 
 int main(void) {
     uint32_t i;
+    uint8_t  LED_status=0;     // Used to keep the track of the LED status on/off
+    uint16_t LED_interval=0;   // Used to reduce the frequency of the LED flashing when the firmware is trasmiting the data
     clock_setup();
     usart_setup();
     gpio_set_mode(LED_GPIO, GPIO_MODE_OUTPUT_50_MHZ,
             GPIO_CNF_OUTPUT_PUSHPULL, LED_PIN);
 
-    // go into infinit loop and output to the serial port
+    /* Turn off the LED */
+    gpio_set(LED_GPIO, LED_PIN);
+    /* Go into infinit loop and output to the serial port */
     while(1) 
     {
 	/* Blink the LED 8 times slow to announce the starting of dumping */
@@ -78,21 +85,25 @@ int main(void) {
 	    delay(1000);
 	}
 	/* Turn on the LED */
-#if defined(__BOARD_BLUE_PILL__)
-/* The LED is output is inverted */
 	gpio_clear(LED_GPIO, LED_PIN);
-#else
-	gpio_set(LED_GPIO, LED_PIN);
-#endif
+	LED_status=1;
 
-	/* Mark firmware start */
-	usart_send_blocking(__USART, 0xAB);
-	delay(10);
-	usart_send_blocking(__USART, 0xCD);
-	delay(10);
-
-	for (uint32_t ptr = 0x08000000; ptr <= 0x08000000 + 0x4000; ptr++) {
+	for (uint32_t ptr = 0x08000000; ptr < 0x08000000 + 0x4000; ptr++) {
 	    usart_send_blocking(__USART, *((uint16_t *) ptr));
+	    /* Flash LED when dumping after each serial port send command */
+	    if (LED_status && LED_interval >= LED_TX_FLASH_INT)
+	    {
+		gpio_set(LED_GPIO, LED_PIN);
+		LED_status=0;
+		LED_interval=0; // reset LED interval
+	    }
+	    else if (LED_interval >= LED_TX_FLASH_INT)
+	    {
+		gpio_clear(LED_GPIO, LED_PIN);
+		LED_status=1;
+		LED_interval=0; // reset LED interval
+	    }
+	    LED_interval++;
 	    delay(10);
 	}
 
@@ -106,12 +117,8 @@ int main(void) {
 	    delay(500);
 	}
 	/* Turn off the LED */
-#if defined(__BOARD_BLUE_PILL__)
-/* The LED is output is inverted */
 	gpio_set(LED_GPIO, LED_PIN);
-#else
-	gpio_clear(LED_GPIO, LED_PIN);
-#endif
+
 	/* Wait a while until we start again to dump */
 	delay(10000);
     }
