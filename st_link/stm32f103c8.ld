@@ -8,5 +8,6 @@ MEMORY
 }
 
 /* Include the common ld script. */
-INCLUDE libopencm3_stm32f1.ld
-
+/* This INCLUDE is not valid anymore in version 1.0.0 */
+/* INCLUDE stm32/f1/libopencm3_stm32f1.ld */
+INCLUDE cortex-m-generic.ld
